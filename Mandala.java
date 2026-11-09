@@ -1,74 +1,161 @@
 import edu.cymbal.graphics.*;
+import java.awt.Color;
 
 public class Mandala {
 
     private static CanvasAPI canvas;
     private static PainterAPI p;
-
+    private static float designHue;
+/**
+   Creates the canvas and painter, chooses a random color hue,
+   and draws the complete mandala design.
+ */
     public static void main(String[] args) {
-        canvas = Graphics.createCanvas(800, 600, "My Mandala");
+        canvas = Graphics.createCanvas(800, 800, "My Mandala");
         p = canvas.getPainter();
-
-        // Test the drawing setup using three different PainterAPI methods.
-        p.forward(80);
-        p.turnRight(90);
-        p.circle(40);
+        designHue = (float) Math.random();
+        drawDesign();
     }
 
-    /**
-     * Draws the complete design: a central mandala surrounded
-     * by smaller shapes of different sizes.
-     */
     public static void drawDesign() {
-        // Calls drawCentralMandala.
-        // Calls drawSurroundingShapes.
+        drawBackground();
+        drawCentralMandala();
+        drawSquareRing();
+        drawSurroundingShapes();
+        drawSmallDecorations();
     }
-
-    /**
-     * Draws overlapping circles and squares centered at (0, 0).
-     */
+/**
+   Draws three flower layers at the canvas center using
+   different sizes and shades of the chosen hue.
+ */
     public static void drawCentralMandala() {
-        // Calls drawCircle.
-        // Calls drawSquare.
+        drawFlower(0, 0, 100,
+                Color.getHSBColor(designHue, 0.45f, 0.95f));
+
+        drawFlower(0, 0, 80,
+                Color.getHSBColor(designHue, 0.65f, 0.75f));
+
+        drawFlower(0, 0, 50,
+                Color.getHSBColor(designHue, 0.85f, 0.55f));
+    }
+    
+    public static void drawFlower(int x, int y, int radius, Color color) {
+        p.liftPen();
+        p.moveTo(x, y);
+        p.lowerPen();
+        p.setPenColor(color);
+        p.setPenWidth(2);
+
+        for (int petal = 0; petal < 12; petal++) {
+            drawPetalCircle(radius);
+            p.turnRight(30);
+        }
+
+        p.liftPen();
+    }
+    public static void drawPetalCircle(int radius) {
+        p.circle(radius);
+    }
+    
+    
+    public static void drawSquareRing() {
+        for (int angle = 0; angle < 90; angle += 4) {
+            float brightness = 0.55f + (angle / 90.0f) * 0.30f;
+
+            p.setPenColor(
+                    Color.getHSBColor(designHue, 0.65f, brightness));
+
+            drawTurningSquare(0, 0, 440, angle);
+        }
     }
 
-    /**
-     * Draws small circles, squares, and triangles of different
-     * sizes around the central mandala.
-     */
+    public static void drawTurningSquare(int x, int y, int side, int angle) {
+        double cornerRadius = side / Math.sqrt(2);
+
+        p.liftPen();
+
+        for (int corner = 0; corner <= 4; corner++) {
+            double radians = Math.toRadians(angle + 45 + corner * 90);
+
+            int cornerX = x + (int) Math.round(cornerRadius * Math.cos(radians));
+            int cornerY = y + (int) Math.round(cornerRadius * Math.sin(radians));
+
+            p.moveTo(cornerX, cornerY);
+            p.lowerPen();
+        }
+
+        p.liftPen();
+    }
+
+    public static void drawCornerDecoration(int x, int y) {
+        drawFlower(x, y, 85,
+                Color.getHSBColor(designHue, 0.45f, 0.95f));
+
+        drawFlower(x, y, 60,
+                Color.getHSBColor(designHue, 0.75f, 0.65f));
+
+        for (int angle = 0; angle < 90; angle += 4) {
+            float brightness = 0.55f + (angle / 90.0f) * 0.30f;
+
+            p.setPenColor(
+                    Color.getHSBColor(designHue, 0.65f, brightness));
+
+            drawTurningSquare(x, y, 360, angle);
+        }
+    }
+
     public static void drawSurroundingShapes() {
-        // Calls drawCircle.
-        // Calls drawSquare.
-        // Calls drawTriangle.
+        drawCornerDecoration(-400, 400);
+        drawCornerDecoration(400, 400);
+        drawCornerDecoration(-400, -400);
+        drawCornerDecoration(400, -400);
     }
 
-    /**
-     * Draws a circle centered at the specified position.
-     *
-     * @param x the X coordinate of the center
-     * @param y the Y coordinate of the center
-     * @param radius the radius of the circle
-     */
-    public static void drawCircle(int x, int y, int radius) {
+    
+
+    public static void drawSmallDecorations() {
+        Color flowerColor = Color.getHSBColor(designHue, 0.65f, 0.75f);
+        drawFlower(0, 355, 20, flowerColor);
+        drawFlower(0, -355, 20, flowerColor);
+        drawFlower(-355, 0, 20, flowerColor);
+        drawFlower(355, 0, 20, flowerColor);
+
+        p.setPenColor(
+                Color.getHSBColor(designHue, 0.75f, 0.55f));
+
+        // Beside the top flower.
+        drawTurningSquare(-50, 355, 15, 45);
+        drawTurningSquare(50, 355, 15, 45);
+
+        // Beside the bottom flower.
+        drawTurningSquare(-50, -355, 15, 45);
+        drawTurningSquare(50, -355, 15, 45);
+
+        // Above and below the left flower.
+        drawTurningSquare(-355, 50, 15, 45);
+        drawTurningSquare(-355, -50, 15, 45);
+
+        // Above and below the right flower.
+        drawTurningSquare(355, 50, 15, 45);
+        drawTurningSquare(355, -50, 15, 45);
     }
 
-    /**
-     * Draws a square with sides parallel to the canvas edges.
-     *
-     * @param x the X coordinate of the bottom-left corner
-     * @param y the Y coordinate of the bottom-left corner
-     * @param sideLength the length of each side
-     */
-    public static void drawSquare(int x, int y, int sideLength) {
-    }
+    public static void drawBackground() {
+        Color backgroundColor = Color.getHSBColor(designHue, 0.06f, 0.98f);
 
-    /**
-     * Draws an equilateral triangle pointing upward.
-     *
-     * @param x the X coordinate of the left endpoint of the base
-     * @param y the Y coordinate of the base
-     * @param sideLength the length of each side
-     */
-    public static void drawTriangle(int x, int y, int sideLength) {
+        p.liftPen();
+        p.moveTo(-400, -400);
+        p.setPenColor(backgroundColor);
+        p.lowerPen();
+
+        p.startFill(backgroundColor);
+
+        p.moveTo(400, -400);
+        p.moveTo(400, 400);
+        p.moveTo(-400, 400);
+        p.moveTo(-400, -400);
+
+        p.finishFill();
+        p.liftPen();
     }
 }
